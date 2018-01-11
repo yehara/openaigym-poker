@@ -40,11 +40,15 @@ dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmu
                target_model_update=1e-2, policy=policy)
 dqn.compile(Adam(lr=1e-3), metrics=['mae'])
 
-nb_episodes = 500000
+nb_pre_episodes = 7000000
+nb_episodes = 3000000
+
+dqn.load_weights('dqn_{}_weights_{}.h5f'.format(ENV_NAME, nb_pre_episodes))
+
 dqn.fit(env, nb_steps=nb_episodes, visualize=False, verbose=1, log_interval=1000)
 
 # After training is done, we save the final weights.
-dqn.save_weights('dqn_{}_weights_{}.h5f'.format(ENV_NAME, nb_episodes), overwrite=True)
+dqn.save_weights('dqn_{}_weights_{}.h5f'.format(ENV_NAME, nb_episodes + nb_pre_episodes), overwrite=False)
 
 
 class EpisodeAccumulator(rl.callbacks.Callback):
