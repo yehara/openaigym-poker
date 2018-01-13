@@ -1,13 +1,10 @@
 import numpy as np
 import gym
-from gym import wrappers # 追加
+import pokerenv
 
+ENV_NAME = 'PokerEnv-v1'
+env = gym.make(ENV_NAME)
 
-import poker
-
-ENV_NAME = 'POKER-v0'
-
-env = poker.PokerEnv()
 np.random.seed(123)
 env.seed(123)
 
@@ -102,17 +99,11 @@ count = 0
 for i in range(10000):
     cards = env.reset().copy()
     change = compute(cards)
-    #print("{} <= {}".format(env.cards_to_string(cards), change))
     env.step(serialize(change))
-    count += 1
     sum += env.calc_score(env.observation_space)
-    #print("{} => {} {}".format(env.cards_to_string(cards), env.cards_to_string(env.observation_space), env.calc_score(env.observation_space)))
+    print("{} => {}    score:{}  ".format(env.cards_to_string(cards), env.cards_to_string(env.observation_space), env.calc_score(env.observation_space)))
 
 print("avarage: {}".format(sum/count))
-
-
-
-# Finally, evaluate our algorithm for 5 episodes.
 
 
 
