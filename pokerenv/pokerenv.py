@@ -3,8 +3,6 @@ import gym
 import numpy as np
 import gym.spaces
 from gym.utils import seeding
-import random
-
 import sys
 
 class PokerEnv(gym.Env):
@@ -32,8 +30,6 @@ class PokerEnv(gym.Env):
         self.reward_range = [0, 100]
         self._seed()
         self._reset()
-        # print(self.cards)
-        # print (self.action_space.sample())
 
     def _reset(self):
         self.remain_cards = list(range(52))
@@ -41,6 +37,7 @@ class PokerEnv(gym.Env):
         self.observation_space = np.zeros(5, dtype=int)
         for i in range(5):
             self.observation_space[i] = self.get_next_card()
+        self.initial_cards = self.cards_to_string(self.observation_space)
         return self.observation_space
 
     def _step(self, action_scalar):
@@ -55,7 +52,12 @@ class PokerEnv(gym.Env):
 
     def _render(self, mode='ansi', close=False):
         outfile = io.StringIO() if mode == 'ansi' else sys.stdout
-        outfile.write(self.cards_to_string(self.observation_space) + '\n')
+        last_cards = self.cards_to_string(self.observation_space)
+        score = self.calc_score(self.observation_space)
+        outfile.write("  {} => {}  score:{}  ".format(
+            self.initial_cards,
+            last_cards,
+            score))
         return outfile
 
     def _seed(self, seed=None):
@@ -73,11 +75,12 @@ class PokerEnv(gym.Env):
         suits = np.array(cards, dtype=int) % 4
 
         # 数字・スーツごとの枚数
-        nums_count = np.zeros(13, dtype=int)
+        nums_count = np.zeros(14, dtype=int)
         suits_count = np.zeros(4, dtype=int)
         for i in range(5):
             nums_count[nums[i]] += 1
             suits_count[suits[i]] += 1
+        nums_count[13] = nums_count[0]
 
         # 同じ・スーツが揃っている数ごとの件数。
         multi_cards = np.zeros(5, dtype=int)
@@ -90,7 +93,7 @@ class PokerEnv(gym.Env):
         is_straight = False
         if multi_cards[1] == 5:
             for s in range(0, 10):
-                if nums_count[s] == 1 and nums_count[s+1] == 1 and nums_count[s+2] == 1 and nums_count[s+3] == 1 and nums_count[(s+4)%13] == 1:
+                if all(nums_count[s:s+5] == np.array([1, 1, 1, 1, 1])):
                     is_straight = True
         is_flash = (multi_suits[5] == 1)
 
