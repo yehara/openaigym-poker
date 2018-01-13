@@ -1,6 +1,6 @@
 import numpy as np
 import gym
-from gym import wrappers # 追加
+from gym import wrappers
 
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Flatten
@@ -11,11 +11,11 @@ from rl.policy import BoltzmannQPolicy
 from rl.memory import SequentialMemory
 import rl.callbacks
 
-import poker
+import pokerenv
 
-ENV_NAME = 'POKER-v0'
+ENV_NAME = 'PokerEnv-v1'
+env = gym.make(ENV_NAME)
 
-env = poker.PokerEnv()
 np.random.seed(123)
 env.seed(123)
 
@@ -36,20 +36,19 @@ print(model.summary())
 
 memory = SequentialMemory(limit=50000, window_length=1)
 policy = BoltzmannQPolicy()
-dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=0,
+dqn = DQNAgent(model=model, nb_actions=nb_actions, memory=memory, nb_steps_warmup=100,
                target_model_update=1e-2, policy=policy)
 dqn.compile(Adam(lr=1e-3), metrics=['mae'])
 
-nb_pre_episodes = 7000000
-nb_episodes = 3000000
+nb_pre_episodes = 0
+nb_episodes = 10000
 
-dqn.load_weights('dqn_{}_weights_{}.h5f'.format(ENV_NAME, nb_pre_episodes))
+if nb_pre_episodes > 0:
+    dqn.load_weights('dqn_{}_weights_{}.h5f'.format(ENV_NAME, nb_pre_episodes))
 
-dqn.fit(env, nb_steps=nb_episodes, visualize=False, verbose=1, log_interval=1000)
-
-# After training is done, we save the final weights.
-dqn.save_weights('dqn_{}_weights_{}.h5f'.format(ENV_NAME, nb_episodes + nb_pre_episodes), overwrite=False)
-
+if nb_episodes > 0:
+    dqn.fit(env, nb_steps=nb_episodes, visualize=True, verbose=1, log_interval=1000)
+    dqn.save_weights('dqn_{}_weights_{}.h5f'.format(ENV_NAME, nb_episodes + nb_pre_episodes), overwrite=True)
 
 class EpisodeAccumulator(rl.callbacks.Callback):
     def __init__(self):
@@ -65,7 +64,6 @@ class EpisodeAccumulator(rl.callbacks.Callback):
 
 accumulator = EpisodeAccumulator()
 
-# Finally, evaluate our algorithm for 5 episodes.
 dqn.test(env, nb_episodes=10000, visualize=True, callbacks=[accumulator])
 
 print("avarage score: " + str(accumulator.reward_average()))
