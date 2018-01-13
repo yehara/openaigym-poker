@@ -44,11 +44,11 @@ nb_pre_episodes = 0
 nb_episodes = 10000
 
 if nb_pre_episodes > 0:
-    dqn.load_weights('dqn_{}_weights_{}.h5f'.format(ENV_NAME, nb_pre_episodes))
+    dqn.load_weights('weights/dqn_{}_weights_{}.h5f'.format(ENV_NAME, nb_pre_episodes))
 
 if nb_episodes > 0:
     dqn.fit(env, nb_steps=nb_episodes, visualize=True, verbose=1, log_interval=1000)
-    dqn.save_weights('dqn_{}_weights_{}.h5f'.format(ENV_NAME, nb_episodes + nb_pre_episodes), overwrite=True)
+    dqn.save_weights('weights/dqn_{}_weights_{}.h5f'.format(ENV_NAME, nb_episodes + nb_pre_episodes), overwrite=True)
 
 class EpisodeAccumulator(rl.callbacks.Callback):
     def __init__(self):
